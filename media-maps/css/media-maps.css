@@ -38,8 +38,9 @@ h1 {
 
 /* Radio button container */
 .radio-wrap {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  /* flex-wrap: wrap; */
   gap: 10px;
   /* margin: 20px 0; */
   padding: 20px;
@@ -50,7 +51,7 @@ h1 {
 /* Individual radio button styling */
 .radio-label {
   display: flex;
-  align-items: center;
+  justify-content: center;
   cursor: pointer;
   padding: 8px 12px;
   background: #f5f5f5;
@@ -82,10 +83,11 @@ h1 {
 
 /* Radio button label text */
 .button-label {
+  display: block;
+  text-align: center;
   font-size: 14px;
   transition: all 0.3s ease;
   cursor: pointer;
-  display: inline-block;
   padding: 0;
 }
 
@@ -138,6 +140,40 @@ h1 {
   border: none;
   transition: all 300ms ease-in-out;
   overflow: hidden;
+}
+
+/* ==========================================================================
+   INFO BUTTON CONTROL
+   ========================================================================== */
+
+.info-button {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #13538a;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 0;
+  line-height: 1;
+}
+
+.info-button:hover {
+  background-color: #13538a;
+  color: white;
+  transform: scale(1.1);
+}
+
+.info-container {
+  width: 100%;
+  transform: translateX(6%);
 }
 
 /* ==========================================================================
@@ -307,6 +343,47 @@ input[type="checkbox"]:checked::before {
 
 *::-webkit-scrollbar-thumb:hover {
   background: #555;
+}
+
+/* ==========================================================================
+   MARKER CLUSTER STYLING
+   ========================================================================== */
+
+.marker-cluster {
+  background-color: rgba(19, 83, 138, 0.6);
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  width: 40px !important;
+  height: 40px !important;
+  margin: 0;
+  padding: 0;
+}
+
+.marker-cluster:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.marker-cluster span {
+  color: white;
+  font-weight: bold;
+  font-size: 14px;
+  text-align: center;
+  line-height: 1;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  top: -0.5px;
 }
 
 /* ==========================================================================
@@ -483,4 +560,3 @@ input[type="checkbox"]:checked::before {
     max-width: none;
   }
 }
-
