@@ -13,13 +13,19 @@ const SheetsDataProcessor = {
     duration: 5 * 60 * 1000, // 5 minutes cache
   },
 
+  /** Sheet headers treated as latitude (WGS84, decimal degrees) */
+  LAT_COLUMN_KEYS: ["Breite", "Latitude", "Lat"],
+
+  /** Sheet headers treated as longitude (WGS84, decimal degrees) */
+  LNG_COLUMN_KEYS: ["Länge", "Laenge", "Longitude", "Lng", "Lon"],
+
   /**
    * Fetch and process data from Google Sheets
    * @param {string} sheetId - Google Sheets ID
-   * @param {string} range - Sheet range (e.g., 'Sheet1!A:K' or 'Tabellenblatt1!A:K')
+   * @param {string} range - Sheet range (e.g. 'Tabellenblatt1!A:M' — includes optional Breite/Länge columns)
    * @returns {Promise<Object>} Processed GeoJSON data
    */
-  async fetchAndProcess(sheetId, range = "Tabellenblatt1!A:K") {
+  async fetchAndProcess(sheetId, range = "Tabellenblatt1!A:M") {
     // Check cache first
     if (this.isCacheValid()) {
       console.log("Using cached Google Sheets data");
@@ -102,43 +108,19 @@ const SheetsDataProcessor = {
 
     // Process each row
     rows.forEach((row) => {
-      if (row.length < 9 || !row[0] || !row[9]) {
-        // Skip rows without required data (Name and Koordinaten)
+      if (!row[0]) {
         return;
       }
 
-      // Create row object from headers
-      const rowData = {};
-      headers.forEach((header, index) => {
-        rowData[header] = row[index] || "";
-      });
+      const rowData = this.rowToObject(headers, row);
+      const name = rowData["Name"];
 
-      // Skip if no coordinates
-      if (!rowData["Koordinaten"]) {
+      if (!name) {
         return;
       }
 
-      // Parse coordinates
-      let coordinates;
-      try {
-        const coordParts = rowData["Koordinaten"]
-          .split(",")
-          .map((c) => parseFloat(c.trim()));
-        if (
-          coordParts.length !== 2 ||
-          isNaN(coordParts[0]) ||
-          isNaN(coordParts[1])
-        ) {
-          console.warn(
-            `Invalid coordinates for ${rowData["Name"]}: ${rowData["Koordinaten"]}`,
-          );
-          return;
-        }
-        coordinates = coordParts;
-      } catch (error) {
-        console.warn(
-          `Error parsing coordinates for ${rowData["Name"]}: ${rowData["Koordinaten"]}`,
-        );
+      const coordinates = this.parseCoordinates(rowData);
+      if (!coordinates) {
         return;
       }
 
@@ -175,6 +157,122 @@ const SheetsDataProcessor = {
     });
 
     return data;
+  },
+
+  /**
+   * Build a header-keyed row object (trimmed headers for stable lookups)
+   */
+  rowToObject(headers, row) {
+    const rowData = {};
+    headers.forEach((header, index) => {
+      const key = String(header ?? "").trim();
+      if (key) {
+        rowData[key] = row[index] ?? "";
+      }
+    });
+    return rowData;
+  },
+
+  /**
+   * Parse a single numeric coordinate from a sheet cell (supports German decimal commas)
+   */
+  parseCoordinateValue(value) {
+    if (value === undefined || value === null || value === "") {
+      return NaN;
+    }
+    const normalized = String(value).trim().replace(",", ".");
+    return parseFloat(normalized);
+  },
+
+  /**
+   * Read latitude or longitude from row using known column header aliases
+   */
+  getAxisValue(rowData, axis) {
+    const keys = axis === "lat" ? this.LAT_COLUMN_KEYS : this.LNG_COLUMN_KEYS;
+    for (const key of keys) {
+      if (key in rowData && rowData[key] !== "") {
+        return this.parseCoordinateValue(rowData[key]);
+      }
+    }
+    return NaN;
+  },
+
+  /**
+   * Resolve coordinates as GeoJSON [longitude, latitude].
+   * Prefers separate Breite/Länge (or Lat/Lng) columns; falls back to legacy "Koordinaten".
+   */
+  parseCoordinates(rowData) {
+    const lat = this.getAxisValue(rowData, "lat");
+    const lng = this.getAxisValue(rowData, "lng");
+
+    if (!isNaN(lat) && !isNaN(lng)) {
+      if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+        console.warn(
+          `Coordinates out of range for ${rowData["Name"]}: lat=${lat}, lng=${lng}`,
+        );
+        return null;
+      }
+      return [lng, lat];
+    }
+
+    const legacy = rowData["Koordinaten"];
+    if (legacy) {
+      return this.parseLegacyKoordinaten(legacy, rowData["Name"]);
+    }
+
+    return null;
+  },
+
+  /**
+   * Parse legacy combined "Koordinaten" cell (comma-separated pair).
+   * Infers lat/lng order for Berlin-area values when ambiguous.
+   */
+  parseLegacyKoordinaten(koordinaten, name) {
+    const parts = String(koordinaten)
+      .split(",")
+      .map((part) => this.parseCoordinateValue(part));
+
+    if (parts.length !== 2 || parts.some((n) => isNaN(n))) {
+      console.warn(`Invalid coordinates for ${name}: ${koordinaten}`);
+      return null;
+    }
+
+    const [first, second] = parts;
+    const ordered = this.orderLatLngPair(first, second);
+
+    if (!ordered) {
+      console.warn(
+        `Could not determine coordinate order for ${name}: ${koordinaten}`,
+      );
+      return null;
+    }
+
+    const [lat, lng] = ordered;
+    return [lng, lat];
+  },
+
+  /**
+   * Return [lat, lng] from two numbers; uses Berlin-area heuristics when needed.
+   */
+  orderLatLngPair(first, second) {
+    const firstIsBerlinLat = first >= 51 && first <= 53;
+    const firstIsBerlinLng = first >= 12 && first <= 15;
+    const secondIsBerlinLat = second >= 51 && second <= 53;
+    const secondIsBerlinLng = second >= 12 && second <= 15;
+
+    if (firstIsBerlinLat && secondIsBerlinLng) {
+      return [first, second];
+    }
+    if (firstIsBerlinLng && secondIsBerlinLat) {
+      return [second, first];
+    }
+
+    // Outside Berlin: assume "lat, lng" (common copy-paste from maps)
+    if (Math.abs(first) <= 90 && Math.abs(second) <= 180) {
+      return [first, second];
+    }
+
+    return null;
   },
 
   /**

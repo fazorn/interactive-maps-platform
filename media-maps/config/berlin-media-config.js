@@ -22,7 +22,7 @@ const BerlinMediaConfig = {
       // Google Sheets configuration (primary data source)
       googleSheets: {
         sheetId: "1ltHBwFfhnMvTEh1qzpZ6WFvMKBG9Q1v0358kyKSrLcg",
-        range: "Tabellenblatt1!A:K", // Includes all columns from Name to Bild2
+        range: "Tabellenblatt1!A:M", // Name through Bild2; optional Breite/Länge columns
       },
       // Local JSON fallback
       fallback: "../shared/data/geojson/standort_daten.json",
