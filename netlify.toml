@@ -14,6 +14,13 @@
   to = "/index.html"
   status = 200
 
+# Default redirect rules
+[[redirects]]
+  # Root redirect to landing page
+  from = "/base"
+  to = "/shared/base.html"
+  status = 200
+
 # City Maps (districts and transportation)
 [[redirects]]
   from = "/city-maps/berlin"

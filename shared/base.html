@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Base Map</title>
+    <meta name="description" content="Simple base map for Berlin" />
+
+    <!-- Leaflet CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+
+    <!-- Custom styles -->
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/components.css" />
+
+    <style>
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+      }
+      #map {
+        height: 100vh;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Map Container -->
+    <div id="map"></div>
+
+    <!-- Loading indicator -->
+    <div id="loading-indicator" class="loading-overlay" style="display: none">
+      <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">Lade Karte...</p>
+      </div>
+    </div>
+
+    <!-- Leaflet JavaScript -->
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+
+    <!-- Simple Map Initialization -->
+    <script>
+      (function () {
+        "use strict";
+
+        // Berlin coordinates
+        const BERLIN_CENTER = [52.52, 13.405];
+        const DEFAULT_ZOOM = 11;
+
+        // Initialize map
+        function initializeMap() {
+          try {
+            showLoading();
+
+            // Create map
+            const map = L.map("map", {
+              center: BERLIN_CENTER,
+              zoom: DEFAULT_ZOOM,
+              zoomControl: true,
+              scrollWheelZoom: true,
+            });
+
+            // Add tile layer (CartoDB Positron)
+            L.tileLayer(
+              "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+              {
+                attribution:
+                  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                subdomains: "abcd",
+                maxZoom: 20,
+              },
+            ).addTo(map);
+
+            hideLoading();
+            console.log("Base map initialized successfully");
+          } catch (error) {
+            console.error("Failed to initialize map:", error);
+            hideLoading();
+            alert("Fehler beim Laden der Karte: " + error.message);
+          }
+        }
+
+        function showLoading() {
+          const loadingIndicator = document.getElementById("loading-indicator");
+          if (loadingIndicator) {
+            loadingIndicator.style.display = "flex";
+          }
+        }
+
+        function hideLoading() {
+          const loadingIndicator = document.getElementById("loading-indicator");
+          if (loadingIndicator) {
+            loadingIndicator.style.display = "none";
+          }
+        }
+
+        // Initialize on DOM ready
+        document.addEventListener("DOMContentLoaded", initializeMap);
+      })();
+    </script>
+  </body>
+</html>
