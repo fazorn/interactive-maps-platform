@@ -214,6 +214,7 @@
           districtBoundariesLayer: null,
           markerCluster: null,
           selectedDistrictName: null,
+          districtSelectionZoom: null,
           districtGeoJsonFeatures: [],
           districtInfoControl: null,
         };
@@ -475,6 +476,9 @@
               if (layerDistrictName === districtName) {
                 layer.setStyle(DISTRICT_STYLES.selected);
                 layer.bringToBack();
+                state.map.once("moveend", () => {
+                  state.districtSelectionZoom = state.map.getZoom();
+                });
                 state.map.fitBounds(layer.getBounds());
                 updateDistrictInfo(layer.feature.properties);
               } else {
@@ -486,6 +490,7 @@
 
         function deselectDistrict() {
           state.selectedDistrictName = null;
+          state.districtSelectionZoom = null;
 
           const radioButtons = document.querySelectorAll(
             'input[name="location"]',
@@ -505,7 +510,15 @@
           );
         }
 
+        function isDistrictMapInteractionEnabled() {
+          if (!state.selectedDistrictName) return true;
+          if (state.districtSelectionZoom == null) return true;
+          return state.map.getZoom() <= state.districtSelectionZoom;
+        }
+
         function handleDistrictMouseover(event) {
+          if (!isDistrictMapInteractionEnabled()) return;
+
           const layer = event.target;
           const districtName = layer.feature.properties.name;
 
@@ -524,6 +537,8 @@
         }
 
         function handleDistrictMouseout(event) {
+          if (!isDistrictMapInteractionEnabled()) return;
+
           const layer = event.target;
           const districtName = layer.feature.properties.name;
 
@@ -537,8 +552,15 @@
         }
 
         function handleDistrictClick(event) {
+          if (!isDistrictMapInteractionEnabled()) return;
+
           const layer = event.target;
           const districtName = layer.feature.properties.name;
+
+          // Map clicks select/switch districts only — never toggle deselect.
+          // Avoids zoom-out when missing a small media marker click.
+          if (state.selectedDistrictName === districtName) return;
+
           selectDistrictByName(districtName);
         }
 
