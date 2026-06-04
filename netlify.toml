@@ -1,90 +1,38 @@
-# Netlify Configuration for Interactive Maps Platform
-# This configuration supports multiple map sites with proper routing
+# Netlify configuration for the interactive maps platform.
+# Static site (no build step) with clean URLs for each map.
 
 [build]
-  # Build settings
   publish = "."
   functions = "netlify/functions"
   command = "echo 'No build step required - static files'"
 
-# Default redirect rules
+# Clean URLs.
 [[redirects]]
-  # Root redirect to landing page
   from = "/"
   to = "/index.html"
   status = 200
 
-# Default redirect rules
-[[redirects]]
-  # Root redirect to landing page
-  from = "/base"
-  to = "/shared/base.html"
-  status = 200
-
-# City Maps (districts and transportation)
+# City maps. Add one line per new city.
 [[redirects]]
   from = "/city-maps/berlin"
   to = "/city-maps/berlin.html"
   status = 200
 
-[[redirects]]
-  from = "/city-maps/hamburg"
-  to = "/city-maps/hamburg.html"
-  status = 200
-
-[[redirects]]
-  from = "/city-maps/munich"
-  to = "/city-maps/munich.html"
-  status = 200
-
-# Media Maps (advertising locations)
+# Media maps (Berlin only for now).
 [[redirects]]
   from = "/media-maps/berlin"
   to = "/media-maps/berlin.html"
   status = 200
 
-# Generic redirects for both types
-[[redirects]]
-  from = "/city-maps/*"
-  to = "/city-maps/:splat"
-  status = 200
-
-[[redirects]]
-  from = "/media-maps/*"
-  to = "/media-maps/:splat"
-  status = 200
-
-[[redirects]]
-  # Shared assets - direct access
-  from = "/shared/*"
-  to = "/shared/:splat"
-  status = 200
-
-[[redirects]]
-  # API proxy for external data sources (optional - for CORS handling)
-  from = "/api/sheets/*"
-  to = "https://sheets.googleapis.com/v4/spreadsheets/:splat"
-  status = 200
-  force = false
-
-[[redirects]]
-  # API proxy for GitHub data
-  from = "/api/github/*"
-  to = "https://raw.githubusercontent.com/:splat"
-  status = 200
-  force = false
-
-# Headers for security and performance
+# Security and performance headers.
 [[headers]]
   for = "/*"
   [headers.values]
-    # Security headers - CSP allows specific domains to embed
+    # Allow the maps to be embedded on the WTM sites.
     Content-Security-Policy = "frame-ancestors 'self' https://wtm-aussenwerbung.de https://wtm-aussenwerbung-berlin.de;"
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    
-    # Performance headers
     X-DNS-Prefetch-Control = "on"
 
 [[headers]]
@@ -107,29 +55,10 @@
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
 
-# Environment variables (can be overridden in Netlify UI)
 [build.environment]
   NODE_VERSION = "18"
 
-# Plugin configuration
-[[plugins]]
-  package = "@netlify/plugin-sitemap"
-
-# Context-specific settings
-[context.production]
-  command = "echo 'Production build'"
-  
-[context.deploy-preview]
-  command = "echo 'Deploy preview'"
-
-[context.branch-deploy]
-  command = "echo 'Branch deploy'"
-
-# Form handling (if needed for contact forms)
-# [[plugins]]
-#   package = "netlify-plugin-form-submissions"
-
-# Performance optimizations
+# Asset optimization.
 [build.processing]
   skip_processing = false
 

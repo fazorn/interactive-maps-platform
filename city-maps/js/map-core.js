@@ -1,39 +1,33 @@
 /**
- * Interactive Maps Platform - Core Map Functionality
- * 
- * This module provides the core map functionality that can be shared
- * across different city map sites in the platform.
- * 
- * Designed to make creating new city maps as simple as swapping data sources.
+ * City map (districts + public transport).
+ *
+ * A single config object describes one city, so adding another city means
+ * writing a new config file (see city-maps/config/) rather than new code.
  */
 
 class InteractiveMap {
   constructor(config) {
-    // Merge with sensible defaults
     this.config = {
-      // Map settings
       containerId: 'map',
-      center: [52.51, 13.39], // Default to Berlin
+      center: [52.51, 13.39],
       zoom: 11,
       minZoom: 10,
       maxZoom: 14,
       scrollWheelZoom: 'center',
-      
-      // Data sources - all optional, making the class flexible
+
       dataSources: {
         districts: null,
         transportation: null,
         districtStats: null
       },
-      
-      // Transportation settings
+
       transportation: {
         routesToDisplay: [],
         routeColors: {}
       },
-      
-      // UI configuration
+
       ui: {
+        cityName: 'City',
         title: 'Interactive Map',
         transportToggleText: 'Transportation',
         zoomInstructionText: 'Ctrl + Mouse Wheel to Zoom',
@@ -43,21 +37,14 @@ class InteractiveMap {
         errorText: 'Error loading data',
         dataSource: 'Data source: Local government'
       },
-      
-      // Feature flags - allows easy customization per city
+
       features: {
         showTransportation: false,
         showDistrictStats: false,
         enableScrollZoom: true,
         showDistrictInfo: true
       },
-      
-      // Performance settings
-      performance: {
-        debounceTime: 250,
-        throttleTime: 100
-      },
-      
+
       ...config
     };
     
@@ -81,27 +68,24 @@ class InteractiveMap {
   }
 
   /**
-   * Initialize the map and set up base configuration
-   * Now uses shared MapBase functionality
+   * Build the Leaflet map and shared controls via MapBase.
    */
   init() {
-    // Use shared MapBase for common functionality
     const mapSetup = MapBase.initializeBasicMap(this.config, {
       enableColorFilter: true,
       enableCustomScrollZoom: this.config.features.enableScrollZoom,
-      enableResponsive: false, // We'll handle this in the factory
-      enableExternalEvents: false, // We'll handle this in the factory
-      customPanes: { 
-        transportationPane: 202, // City maps need transportation pane
-        districtPane: 205, 
-        markerPane: 600 
+      enableResponsive: true,
+      enableExternalEvents: true,
+      customPanes: {
+        transportationPane: 202,
+        districtPane: 205,
+        markerPane: 600
       }
     });
-    
-    // Store references
+
     this.map = mapSetup.map;
     this.baseSetup = mapSetup;
-    
+
     if (this.config.features.showDistrictInfo) {
       this.setupDistrictInfoControl();
     }
@@ -197,8 +181,7 @@ class InteractiveMap {
     };
     
     districtInfoControl._updateContent = function(name, area, population, adCount, notes) {
-      // Title - make the city name configurable by extracting from the title
-      const cityName = this._mapConfig.ui.title.split(' ')[0] || 'City';
+      const cityName = this._mapConfig.ui.cityName || 'City';
       this._els.titleEl.textContent = name ? `${cityName} – ${name}` : this._mapConfig.ui.districtSelectPrompt;
       
       // Create chips
@@ -331,8 +314,7 @@ class InteractiveMap {
   }
 
   /**
-   * Get color for transportation route
-   * Now uses configurable colors from config
+   * Get the configured color for a transport route.
    */
   getTransportationColor(routeName) {
     return this.config.transportation.routeColors[routeName] || '#000000';
@@ -473,22 +455,7 @@ class InteractiveMap {
   }
 
   /**
-   * Get current layers
-   */
-  getLayers() {
-    return this.layers;
-  }
-
-  /**
-   * Get current controls
-   */
-  getControls() {
-    return this.controls;
-  }
-
-  /**
-   * High-level initialization method that loads all configured data sources
-   * Makes creating a complete city map as simple as calling one method
+   * Load every data source declared in the config.
    */
   async initializeWithData(showLoadingCallback = null, hideLoadingCallback = null) {
     try {
@@ -526,5 +493,4 @@ class InteractiveMap {
   }
 }
 
-// Export for use in other modules
 window.InteractiveMap = InteractiveMap;

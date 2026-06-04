@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Interaktive Karten Plattform</title>
+    <title>Interaktive Karten</title>
     <meta
       name="description"
-      content="Interaktive Kartenplattform mit Stadtkarten und Medienstandort-Karten für Berlin"
+      content="Interaktive Karten für Berlin: Stadtkarten und Medienstandorte"
     />
     <link rel="stylesheet" href="shared/css/base.css" />
     <link rel="stylesheet" href="shared/css/components.css" />
@@ -15,91 +15,39 @@
   <body>
     <main class="map-container">
       <header class="page-header">
-        <h1>Interaktive Karten Plattform</h1>
+        <h1>Interaktive Karten</h1>
       </header>
 
-      <section style="padding: 2rem; max-width: 800px; margin: 0 auto">
-        <div
-          style="
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-            margin-bottom: 2rem;
-          "
-        >
-          <!-- Stadtkarten -->
-          <div
-            style="
-              border: 1px solid var(--border);
-              border-radius: var(--radius);
-              padding: 1.5rem;
-            "
-          >
-            <h2 style="color: var(--accent); margin-top: 0">Stadtkarten</h2>
-            <p style="color: var(--muted-fg); margin-bottom: 1rem">
-              Bezirksgrenzen, Verkehrsverbindungen und Statistiken
-            </p>
-            <ul style="list-style: none; padding: 0">
-              <li style="margin-bottom: 0.5rem">
-                <a
-                  href="city-maps/berlin.html"
-                  style="
-                    color: var(--accent);
-                    text-decoration: none;
-                    font-weight: 500;
-                  "
-                >
-                  Berlin
-                </a>
-              </li>
-              <li>Köln - in construction</li>
-              <li>München - in construction</li>
-              <li>Frankfurt - in construction</li>
-              <li>Hamburg - in construction</li>
+      <section class="landing">
+        <div class="landing__grid">
+          <div class="landing__card">
+            <h2>Stadtkarten</h2>
+            <p>Bezirksgrenzen, Verkehrsverbindungen und Statistiken</p>
+            <ul class="landing__list">
+              <li><a href="city-maps/berlin.html">Berlin</a></li>
+              <li class="muted">Köln – in Vorbereitung</li>
+              <li class="muted">München – in Vorbereitung</li>
+              <li class="muted">Frankfurt – in Vorbereitung</li>
+              <li class="muted">Hamburg – in Vorbereitung</li>
             </ul>
           </div>
 
-          <!-- Medienkarten -->
-          <div
-            style="
-              border: 1px solid var(--border);
-              border-radius: var(--radius);
-              padding: 1.5rem;
-            "
-          >
-            <h2 style="color: var(--accent); margin-top: 0">Medienstandorte</h2>
-            <p style="color: var(--muted-fg); margin-bottom: 1rem">
-              Werbestandorte, Plakatflächen und Medienplanung
-            </p>
-            <ul style="list-style: none; padding: 0">
-              <li style="margin-bottom: 0.5rem">
-                <a
-                  href="media-maps/berlin.html"
-                  style="
-                    color: var(--accent);
-                    text-decoration: none;
-                    font-weight: 500;
-                  "
-                >
-                  Berlin
-                </a>
-              </li>
+          <div class="landing__card">
+            <h2>Medienstandorte</h2>
+            <p>Werbestandorte, Plakatflächen und Medienplanung</p>
+            <ul class="landing__list">
+              <li><a href="media-maps/berlin.html">Berlin</a></li>
             </ul>
           </div>
         </div>
 
-        <div
-          style="margin-top: 3rem; text-align: center; color: var(--muted-fg)"
-        >
-          <h3 style="color: var(--primary-fg); margin-bottom: 1rem">
-            Über diese Plattform
-          </h3>
-          <p style="max-width: 600px; margin: 0 auto; line-height: 1.6">
-            Diese interaktive Kartenplattform bietet detaillierte Ansichten von
-            Berlin mit verschiedenen Schwerpunkten. Die Stadtkarten zeigen
-            Bezirksinformationen und Verkehrsverbindungen, während die
-            Medienstandort-Karten für die Werbeplanung und Standortanalyse
-            optimiert sind.
+        <div class="landing__about">
+          <h3>Über diese Plattform</h3>
+          <p>
+            Diese Plattform bietet interaktive Karten für Berlin. Die
+            Stadtkarten zeigen Bezirksinformationen und Verkehrsverbindungen,
+            die Medienstandort-Karten unterstützen die Werbeplanung und
+            Standortanalyse.
           </p>
         </div>
       </section>

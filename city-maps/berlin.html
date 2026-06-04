@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Berlin City Map - Districts & Transportation</title>
+    <title>Berlin – Bezirke & Verkehr</title>
     <meta
       name="description"
-      content="Interactive Berlin city map with district information and public transportation routes"
+      content="Interaktive Karte der Berliner Bezirke mit öffentlichen Verkehrsverbindungen"
     />
 
     <!-- Leaflet CSS -->
@@ -22,9 +22,6 @@
     <link rel="stylesheet" href="../shared/css/components.css" />
     <link rel="stylesheet" href="../shared/css/map-common.css" />
     <link rel="stylesheet" href="css/city-maps.css" />
-
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
   </head>
 
   <body>
@@ -61,94 +58,51 @@
     <script src="../shared/js/map-utils.js"></script>
     <script src="../shared/js/map-base.js"></script>
     <script src="js/map-core.js"></script>
-    <script src="js/city-map-factory.js"></script>
 
     <!-- Berlin city configuration -->
     <script src="config/berlin-city-config.js"></script>
 
-    <!-- Application initialization -->
+    <!-- Page setup -->
     <script>
-      /**
-       * Berlin City Map Application
-       *
-       * Now uses the new CityMapFactory for simplified initialization.
-       * Creating new city maps is now as simple as swapping the configuration!
-       */
+      (function () {
+        "use strict";
 
-      // Global variables
-      let berlinCityMap;
-      let loadingIndicator;
+        let berlinCityMap;
 
-      // Initialize the application
-      document.addEventListener("DOMContentLoaded", function () {
-        initializeBerlinCityMap();
-      });
-
-      /**
-       * Initialize the Berlin city map application
-       * Now dramatically simplified using the CityMapFactory!
-       */
-      async function initializeBerlinCityMap() {
-        try {
-          showLoading("Lade Konfiguration...");
-
-          // Setup Google Sheets if API key is available
-          await BerlinCityConfig.setupGoogleSheets();
-
-          // Create the map
-          berlinCityMap = await CityMapFactory.createCityMap(BerlinCityConfig, {
-            showLoadingCallback: showLoading,
-            hideLoadingCallback: hideLoading,
-            setupResponsive: true,
-            setupExternalEvents: true,
-          });
-
-          console.log("Berlin city map initialized successfully");
-        } catch (error) {
-          console.error("Failed to initialize Berlin city map:", error);
-          hideLoading();
-          MapUtils.handleError(error, "beim Initialisieren der Karte");
-        }
-      }
-
-      /**
-       * Show loading indicator
-       */
-      function showLoading(message = BerlinCityConfig.ui.loadingText) {
-        if (!loadingIndicator) {
-          loadingIndicator = document.getElementById("loading-indicator");
+        function showLoading(message = BerlinCityConfig.ui.loadingText) {
+          const el = document.getElementById("loading-indicator");
+          if (!el) return;
+          el.querySelector(".loading-text").textContent = message;
+          el.style.display = "flex";
         }
 
-        if (loadingIndicator) {
-          const loadingText = loadingIndicator.querySelector(".loading-text");
-          if (loadingText) {
-            loadingText.textContent = message;
+        function hideLoading() {
+          const el = document.getElementById("loading-indicator");
+          if (el) el.style.display = "none";
+        }
+
+        async function init() {
+          try {
+            showLoading("Lade Konfiguration...");
+            await BerlinCityConfig.setupGoogleSheets();
+
+            berlinCityMap = new InteractiveMap(BerlinCityConfig);
+            await berlinCityMap.initializeWithData(showLoading, hideLoading);
+
+            window.berlinCityMap = berlinCityMap;
+          } catch (error) {
+            hideLoading();
+            MapUtils.handleError(error, "beim Initialisieren der Karte");
           }
-          loadingIndicator.style.display = "flex";
         }
-      }
 
-      /**
-       * Hide loading indicator
-       */
-      function hideLoading() {
-        if (loadingIndicator) {
-          loadingIndicator.style.display = "none";
-        }
-      }
+        // Allow an embedding page (e.g. WordPress) to recenter the map.
+        window.changeMapView = function (coordinates, zoom) {
+          if (berlinCityMap) berlinCityMap.getMap().setView(coordinates, zoom);
+        };
 
-      /**
-       * Handle external map view changes (for WordPress integration)
-       */
-      function changeMapView(coordinates, zoom) {
-        if (berlinCityMap && berlinCityMap.getMap()) {
-          berlinCityMap.getMap().setView(coordinates, zoom);
-        }
-      }
-
-      // Make functions available globally for external integration
-      window.berlinCityMap = berlinCityMap;
-      window.changeMapView = changeMapView;
+        document.addEventListener("DOMContentLoaded", init);
+      })();
     </script>
   </body>
 </html>
