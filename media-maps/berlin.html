@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Berlin Media Locations Map</title>
+    <title>Berlin Medienstandorte</title>
     <meta
       name="description"
-      content="Interactive map of advertising and media locations in Berlin"
+      content="Interaktive Karte der Werbeträger und Medienstandorte in Berlin"
     />
 
     <!-- Leaflet CSS -->
@@ -30,6 +30,7 @@
     <!-- Custom styles -->
     <link rel="stylesheet" href="../shared/css/base.css" />
     <link rel="stylesheet" href="../shared/css/components.css" />
+    <link rel="stylesheet" href="../shared/css/map-common.css" />
     <link rel="stylesheet" href="css/media-maps.css" />
   </head>
 
@@ -89,7 +90,7 @@
       </div>
 
       <!-- Map Container -->
-      <section class="Treptow-Köpenick">
+      <section class="map-section">
         <div class="custom-popup" id="map"></div>
       </section>
     </main>
@@ -131,7 +132,6 @@
         // CONSTANTS
         // ============================================================================
 
-        const DEFAULT_MAP_STYLE = "carto-base";
         const DEFAULT_MARKER_COLOR = "#666666";
 
         const DISTRICT_STYLES = {
@@ -210,10 +210,10 @@
         const state = {
           map: null,
           mapWrapper: null,
-          currentTileLayer: null,
           districtBoundariesLayer: null,
           markerCluster: null,
           selectedDistrictName: null,
+          districtSelectionZoom: null,
           districtGeoJsonFeatures: [],
           districtInfoControl: null,
         };
@@ -245,9 +245,6 @@
             };
 
             state.map = mapSetup.map;
-            state.currentTileLayer = mapSetup.tileLayer;
-
-            setMapStyle(DEFAULT_MAP_STYLE);
 
             if (BerlinMediaConfig.dataSources.districts) {
               showLoading("Lade Bezirksgrenzen...");
@@ -277,21 +274,6 @@
         function initializeMarkerCluster() {
           state.markerCluster = L.markerClusterGroup(CLUSTER_OPTIONS);
           state.markerCluster.addTo(state.map);
-        }
-
-        function setMapStyle(styleName) {
-          if (state.currentTileLayer) {
-            state.map.removeLayer(state.currentTileLayer);
-          }
-
-          const tileConfig = BerlinMediaConfig.mapStyles[styleName];
-          if (tileConfig) {
-            state.currentTileLayer = L.tileLayer(
-              tileConfig.url,
-              tileConfig.options,
-            );
-            state.currentTileLayer.addTo(state.map);
-          }
         }
 
         // ============================================================================
@@ -475,6 +457,9 @@
               if (layerDistrictName === districtName) {
                 layer.setStyle(DISTRICT_STYLES.selected);
                 layer.bringToBack();
+                state.map.once("moveend", () => {
+                  state.districtSelectionZoom = state.map.getZoom();
+                });
                 state.map.fitBounds(layer.getBounds());
                 updateDistrictInfo(layer.feature.properties);
               } else {
@@ -486,6 +471,7 @@
 
         function deselectDistrict() {
           state.selectedDistrictName = null;
+          state.districtSelectionZoom = null;
 
           const radioButtons = document.querySelectorAll(
             'input[name="location"]',
@@ -505,7 +491,15 @@
           );
         }
 
+        function isDistrictMapInteractionEnabled() {
+          if (!state.selectedDistrictName) return true;
+          if (state.districtSelectionZoom == null) return true;
+          return state.map.getZoom() <= state.districtSelectionZoom;
+        }
+
         function handleDistrictMouseover(event) {
+          if (!isDistrictMapInteractionEnabled()) return;
+
           const layer = event.target;
           const districtName = layer.feature.properties.name;
 
@@ -524,6 +518,8 @@
         }
 
         function handleDistrictMouseout(event) {
+          if (!isDistrictMapInteractionEnabled()) return;
+
           const layer = event.target;
           const districtName = layer.feature.properties.name;
 
@@ -537,8 +533,15 @@
         }
 
         function handleDistrictClick(event) {
+          if (!isDistrictMapInteractionEnabled()) return;
+
           const layer = event.target;
           const districtName = layer.feature.properties.name;
+
+          // Map clicks select/switch districts only — never toggle deselect.
+          // Avoids zoom-out when missing a small media marker click.
+          if (state.selectedDistrictName === districtName) return;
+
           selectDistrictByName(districtName);
         }
 
@@ -686,14 +689,13 @@
         // ============================================================================
 
         function setupInfoControl() {
-          const infoControl = L.control({ position: "topleft" });
-          var tooltip = L.tooltip([52.49971467573808, 13.090437873291556], {
-            content: "Hello world!<br />This is a nice tooltip.",
-            direction: "right",
-            opacity: 1,
-          });
+          const INFO_TEXT =
+            "Interaktive Karte der Werbeträger in Berlin. " +
+            "Wähle einen Bezirk aus der Liste oder klicke auf der Karte.";
 
-          infoControl.onAdd = function (map) {
+          const infoControl = L.control({ position: "topleft" });
+
+          infoControl.onAdd = function () {
             const container = L.DomUtil.create("div", "info-container");
             const button = L.DomUtil.create("button", "info-button", container);
 
@@ -703,10 +705,10 @@
 
             button.addEventListener("click", (e) => {
               e.stopPropagation();
-              tooltip.addTo(state.map);
-              // alert(
-              //   "Interaktive Karte der Werbeträger in Berlin\n\nWähle einen Bezirk aus der Liste oder klicke auf der Karte.",
-              // );
+              L.popup()
+                .setLatLng(state.map.getCenter())
+                .setContent(INFO_TEXT)
+                .openOn(state.map);
             });
 
             L.DomEvent.disableClickPropagation(container);

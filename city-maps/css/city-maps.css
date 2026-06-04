@@ -1,16 +1,11 @@
-
 /* ==========================================================================
-   BASE STYLES (Original)
+   CITY MAP STYLES
+   Shared map styling lives in shared/css/map-common.css; this file only holds
+   styles specific to the city map (district panel, transport toggle).
    ========================================================================== */
 
-/* Base map container */
-#map {
-  height: 700px;
-  position: relative;
-}
-
 /* ==========================================================================
-   DISTRICT PANEL (Original Right Sidebar Styling)
+   DISTRICT PANEL (right sidebar)
    ========================================================================== */
 
 .leaflet-bottom.leaflet-right,
@@ -115,7 +110,7 @@
 }
 
 .district-label {
-  color: "#6e7471";
+  color: #6e7471;
   background: transparent;
   border-style: none;
   box-shadow: none;
@@ -124,7 +119,7 @@
 }
 
 /* ==========================================================================
-   TRANSPORTATION TOGGLE BUTTON (Original Styling)
+   TRANSPORTATION TOGGLE BUTTON
    ========================================================================== */
 
 .transport-toggle {
@@ -168,7 +163,7 @@
 }
 
 /* ==========================================================================
-   MOBILE RESPONSIVE (Original Breakpoints)
+   MOBILE RESPONSIVE
    ========================================================================== */
 
 @media (max-width: 640px) {

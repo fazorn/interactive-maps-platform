@@ -152,6 +152,66 @@ select:focus, input:focus {
   font-weight: 400;
 }
 
+/* Landing page */
+.landing {
+  padding: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.landing__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.landing__card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+}
+
+.landing__card h2 {
+  color: var(--accent);
+  margin-top: 0;
+}
+
+.landing__card p {
+  color: var(--muted-fg);
+  margin-bottom: 1rem;
+}
+
+.landing__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.landing__list li {
+  margin-bottom: 0.5rem;
+}
+
+.landing__list a {
+  font-weight: 500;
+}
+
+.landing__list .muted {
+  color: var(--muted-fg);
+}
+
+.landing__about {
+  margin-top: 3rem;
+  text-align: center;
+  color: var(--muted-fg);
+}
+
+.landing__about p {
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
 /* Responsive adjustments */
 @media (max-width: 480px) {
   .notification {
@@ -164,5 +224,11 @@ select:focus, input:focus {
   .btn {
     font-size: 14px;
     padding: 6px 12px;
+  }
+}
+
+@media (max-width: 640px) {
+  .landing__grid {
+    grid-template-columns: 1fr;
   }
 }

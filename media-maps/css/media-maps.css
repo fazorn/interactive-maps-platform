@@ -1,54 +1,22 @@
 /* ==========================================================================
-   MEDIA MAPS SPECIFIC STYLES - Based on Original Berlin Map Implementation
+   MEDIA MAP STYLES
+   Shared map styling lives in shared/css/map-common.css; this file only holds
+   styles specific to the media map (district picker, layer control, clusters).
    ========================================================================== */
 
 /* ==========================================================================
-   BASE STYLES
+   DISTRICT SELECTION CONTROLS
    ========================================================================== */
 
-h1 {
-  text-align: center;
-}
-
-#map {
-  height: 700px;
-  position: relative;
-}
-
-/* Map style selector */
-.map-style-selector {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 14px;
-}
-
-.map-style-selector label {
-  font-weight: 500;
-  color: var(--muted-fg);
-}
-
-.map-style-selector select {
-  min-width: 150px;
-}
-
-/* ==========================================================================
-   DISTRICT SELECTION CONTROLS (Original Styling)
-   ========================================================================== */
-
-/* Radio button container */
 .radio-wrap {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  /* flex-wrap: wrap; */
   gap: 10px;
-  /* margin: 20px 0; */
   padding: 20px;
   background: rgba(255, 255, 255, 0.9);
   border-radius: 10px;
 }
 
-/* Individual radio button styling */
 .radio-label {
   display: flex;
   justify-content: center;
@@ -72,7 +40,6 @@ h1 {
   border-color: #005a85;
 }
 
-/* Hide default radio button */
 .radio-label input[type="radio"] {
   position: absolute;
   opacity: 0;
@@ -81,7 +48,6 @@ h1 {
   width: 0;
 }
 
-/* Radio button label text */
 .button-label {
   display: block;
   text-align: center;
@@ -96,35 +62,15 @@ h1 {
 }
 
 /* ==========================================================================
-   MAP CONTROL PANELS (Original Styling)
+   LAYER CONTROL (advertising category toggles)
    ========================================================================== */
 
-/* District information panel */
-.info,
-.district-info {
-  padding: 6px 8px;
-  font-family: inherit;
-  background: rgba(255, 255, 255, 0.8);
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-  border-radius: 5px;
-}
-
-.info h4,
-.district-info h4 {
-  margin: 0 0 5px;
-  color: #777;
-}
-
-/* Layer control container (Original Styling) */
-.custom-control,
-.layer-control {
+.custom-control {
   background-color: rgba(255, 255, 255, 0.8);
   border-radius: inherit;
 }
 
-/* Toggle button for layer control (Original Styling) */
-.toggle-button1,
-.layer-toggle-button {
+.toggle-button1 {
   padding: 8px 16px;
   text-align: center;
   width: 100%;
@@ -134,7 +80,6 @@ h1 {
   border-radius: inherit;
 }
 
-/* Checkbox container (Original Styling) */
 .checkbox-container {
   background-color: transparent;
   border: none;
@@ -142,9 +87,59 @@ h1 {
   overflow: hidden;
 }
 
+.form-control {
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: bold;
+  line-height: 1.1;
+  background-color: transparent;
+  display: grid;
+  grid-template-columns: 1em auto;
+  gap: 0.5em;
+  border-radius: inherit;
+}
+
+/* Custom checkbox used inside the layer control. */
+input[type="checkbox"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background-color: #fff;
+  margin: 0;
+  margin-top: 2px;
+  font-family: inherit;
+  color: currentColor;
+  width: 1.15em;
+  height: 1.15em;
+  border: 0.15em solid currentColor;
+  border-radius: 1em;
+  transform: translateY(-0.075em);
+  display: grid;
+  place-content: center;
+}
+
+input[type="checkbox"]::before {
+  content: "";
+  width: 0.65em;
+  height: 0.65em;
+  transform: scale(0);
+  transition: 120ms transform ease-in-out;
+  box-shadow: inset 1em 1em currentColor;
+}
+
+input[type="checkbox"]:checked::before {
+  transform: scale(1);
+  border-radius: 1em;
+  background-color: currentColor;
+}
+
 /* ==========================================================================
-   INFO BUTTON CONTROL
+   INFO BUTTON
    ========================================================================== */
+
+.info-container {
+  width: 100%;
+  transform: translateX(6%);
+}
 
 .info-button {
   width: 28px;
@@ -171,182 +166,8 @@ h1 {
   transform: scale(1.1);
 }
 
-.info-container {
-  width: 100%;
-  transform: translateX(6%);
-}
-
 /* ==========================================================================
-   FORM CONTROLS (Original Styling)
-   ========================================================================== */
-
-/* Base form styling */
-form {
-  display: grid;
-  place-content: center;
-  min-height: 100vh;
-}
-
-/* Form control wrapper (Original Styling) */
-.form-control {
-  font-family: inherit;
-  font-size: 1rem;
-  font-weight: bold;
-  line-height: 1.1;
-  background-color: transparent;
-  display: grid;
-  grid-template-columns: 1em auto;
-  gap: 0.5em;
-  border-radius: inherit;
-}
-
-/* ==========================================================================
-   CHECKBOX STYLES (Original Custom Styling)
-   ========================================================================== */
-
-/* Custom checkbox for layer controls */
-.custom-control-input[type="checkbox"],
-input[type="checkbox"] {
-  -webkit-appearance: none;
-  appearance: none;
-  background-color: #fff;
-  margin: 0;
-  margin-top: 2px;
-  font-family: inherit;
-  color: currentColor;
-  width: 1.15em;
-  height: 1.15em;
-  border: 0.15em solid currentColor;
-  border-radius: 1em;
-  transform: translateY(-0.075em);
-  display: grid;
-  place-content: center;
-}
-
-.custom-control-input[type="checkbox"] {
-  background-color: transparent;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-}
-
-/* Checkbox check mark */
-input[type="checkbox"]::before {
-  content: "";
-  width: 0.65em;
-  height: 0.65em;
-  transform: scale(0);
-  transition: 120ms transform ease-in-out;
-  box-shadow: inset 1em 1em currentColor;
-}
-
-input[type="checkbox"]:checked::before {
-  transform: scale(1);
-  border-radius: 1em;
-  background-color: currentColor;
-}
-
-/* ==========================================================================
-   ZOOM INSTRUCTION OVERLAY (Original Position & Styling)
-   ========================================================================== */
-
-.zoom-instruction {
-  position: absolute;
-  bottom: 25%;
-  right: 50%;
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 8px 12px;
-  border-radius: 4px;
-  font-size: 12px;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  z-index: 1000;
-  font-weight: 500;
-}
-
-/* ==========================================================================
-   POPUP STYLES (Original Layout & Styling)
-   ========================================================================== */
-
-/* Layout for location popup - left/right sections */
-.location-popup {
-  width: 100%;
-  height: 100%;
-}
-
-.popup-layout {
-  display: flex;
-  gap: 15px;
-  min-height: 200px;
-}
-
-.popup-info-section {
-  flex: 1;
-  line-height: 1.5;
-  min-width: 250px;
-}
-
-.popup-images-section {
-  flex: 1;
-  max-height: 300px;
-  overflow-y: scroll;
-  overflow-x: hidden;
-  padding-right: 5px;
-}
-
-.popup-images-section img {
-  display: block;
-  margin-bottom: 10px;
-  width: 100%;
-  height: auto;
-}
-
-/* Leaflet popup customization (Original Styling) */
-.custom-popup .leaflet-popup-content-wrapper {
-  background: white;
-  color: #000000;
-  font-size: 14px;
-  line-height: 22px;
-}
-
-.custom-popup .leaflet-popup-content {
-  max-height: 400px;
-  max-width: max-content;
-  margin: 0;
-  margin-top: 1.5rem;
-  padding: 1rem;
-  padding-top: 0.5rem;
-  overflow-x: hidden;
-  overflow-y: scroll;
-}
-
-/* ==========================================================================
-   SCROLLBAR CUSTOMIZATION (Original Styling)
-   ========================================================================== */
-
-*::-webkit-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: black grey;
-  width: 10px;
-  border-radius: 2px;
-}
-
-*::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
-}
-
-*::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 10px;
-}
-
-*::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
-
-/* ==========================================================================
-   MARKER CLUSTER STYLING
+   MARKER CLUSTERS
    ========================================================================== */
 
 .marker-cluster {
@@ -373,10 +194,7 @@ input[type="checkbox"]:checked::before {
   color: white;
   font-weight: bold;
   font-size: 14px;
-  text-align: center;
   line-height: 1;
-  margin: 0;
-  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -387,137 +205,7 @@ input[type="checkbox"]:checked::before {
 }
 
 /* ==========================================================================
-   MEDIA LOCATION MARKERS
-   ========================================================================== */
-
-.media-marker {
-  border-radius: 50%;
-  border: 2px solid white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.media-marker--billboard {
-  background-color: #ff6b6b;
-}
-
-.media-marker--digital {
-  background-color: #4ecdc4;
-}
-
-.media-marker--transit {
-  background-color: #45b7d1;
-}
-
-.media-marker--furniture {
-  background-color: #96ceb4;
-}
-
-.media-marker--building {
-  background-color: #ffeaa7;
-}
-
-.media-cluster {
-  width: 40px;
-  height: 40px;
-  background-color: greenyellow;
-  text-align: center;
-  font-size: 24px;
-}
-
-/* ==========================================================================
-   MEDIA POPUP CONTENT
-   ========================================================================== */
-
-.media-popup {
-  min-width: 250px;
-}
-
-.media-popup__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.media-popup__title {
-  font-weight: 600;
-  font-size: 16px;
-  margin: 0;
-}
-
-.media-popup__type {
-  background: var(--surface);
-  color: var(--muted-fg);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.media-popup__content {
-  display: grid;
-  gap: 0.5rem;
-}
-
-.media-popup__field {
-  display: flex;
-  justify-content: space-between;
-  font-size: 14px;
-}
-
-.media-popup__field-label {
-  font-weight: 500;
-  color: var(--muted-fg);
-}
-
-.media-popup__field-value {
-  color: var(--panel-fg);
-}
-
-/* ==========================================================================
-   MEDIA TYPE LEGEND
-   ========================================================================== */
-
-.media-legend {
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
-  background: var(--panel-bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 12px;
-  box-shadow: var(--shadow);
-  z-index: 1000;
-  max-width: 200px;
-}
-
-.media-legend__title {
-  font-weight: 600;
-  font-size: 14px;
-  margin: 0 0 8px;
-  color: var(--panel-fg);
-}
-
-.media-legend__item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
-  font-size: 12px;
-  color: var(--muted-fg);
-}
-
-.media-legend__color {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-/* ==========================================================================
-   MOBILE RESPONSIVE ADJUSTMENTS (Original + Enhanced)
+   MOBILE
    ========================================================================== */
 
 @media (max-width: 768px) {
@@ -525,38 +213,5 @@ input[type="checkbox"]:checked::before {
     padding: 0.3em 0.5em;
     font-size: 0.8em;
     margin: 0 3px;
-  }
-
-  .map-style-selector {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.25rem;
-  }
-
-  .popup-layout {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .popup-info-section {
-    min-width: auto;
-  }
-
-  .media-legend {
-    bottom: 10px;
-    left: 10px;
-    max-width: 150px;
-  }
-}
-
-@media (max-width: 480px) {
-  .media-popup {
-    min-width: 200px;
-  }
-
-  .media-legend {
-    position: relative;
-    margin: 10px;
-    max-width: none;
   }
 }
