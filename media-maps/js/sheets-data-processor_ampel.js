@@ -41,27 +41,20 @@ const SheetsDataProcessor = {
       // Build Google Sheets API URL
       const sheetsUrl = EnvLoader.buildSheetsUrl(sheetId, range);
 
-//      if (!sheetsUrl) {
-//        throw new Error("Google Sheets API key not configured");
-//      }
+      if (!sheetsUrl) {
+        throw new Error("Google Sheets API key not configured");
+      }
 
-//      // Fetch data from Google Sheets
-//      const response = await fetch(sheetsUrl);
-//
-//      if (!response.ok) {
-//        throw new Error(
-//          `Google Sheets API error: ${response.status} ${response.statusText}`,
-//        );
-//      }
-//
-//      const data = await response.json();
-
-      const XLSX = require("xlsx");
-
-      const workbook = XLSX.readFile("Schaltkästen_Karte_Einbettung.xlsx");
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-
-      const data = XLSX.utils.sheet_to_json;
+      // Fetch data from Google Sheets
+        const response = await fetch(sheetsUrl);
+  
+      if (!response.ok) {
+        throw new Error(
+            `Google Sheets API error: ${response.status} ${response.statusText}`,
+          );
+      }
+  
+      const data = await response.json();
 
       if (!data.values || data.values.length < 2) {
         throw new Error("No data found in Google Sheets");
