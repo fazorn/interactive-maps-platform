@@ -1,0 +1,861 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Berlin Medienstandorte</title>
+    <meta
+      name="description"
+      content="Interaktive Karte der Werbeträger und Medienstandorte in Berlin"
+    />
+
+    <!-- Leaflet CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+
+    <!-- Leaflet MarkerCluster CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
+    />
+
+    <!-- Custom styles -->
+    <link rel="stylesheet" href="../shared/css/base.css" />
+    <link rel="stylesheet" href="../shared/css/components.css" />
+    <link rel="stylesheet" href="../shared/css/map-common.css" />
+    <link rel="stylesheet" href="css/media-maps.css" />
+  </head>
+
+  <body>
+    <!-- Main container -->
+    <main class="map-container">
+      <!-- District Selection Controls -->
+      <div class="radio-wrap" id="district-selector">
+        <label class="radio-label">
+          <input type="radio" name="location" id="Charlottenburg-Wilmersdorf" />
+          <span class="button-label">Charlottenburg-Wilmersdorf</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="location" id="Friedrichshain-Kreuzberg" />
+          <span class="button-label">Friedrichshain-Kreuzberg</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="location" id="Lichtenberg" />
+          <span class="button-label">Lichtenberg</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="location" id="Marzahn-Hellersdorf" />
+          <span class="button-label">Marzahn-Hellersdorf</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="location" id="Mitte" />
+          <span class="button-label">Mitte</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="location" id="Neukölln" />
+          <span class="button-label">Neukölln</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="location" id="Pankow" />
+          <span class="button-label">Pankow</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="location" id="Reinickendorf" />
+          <span class="button-label">Reinickendorf</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="location" id="Spandau" />
+          <span class="button-label">Spandau</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="location" id="Steglitz-Zehlendorf" />
+          <span class="button-label">Steglitz-Zehlendorf</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="location" id="Tempelhof-Schöneberg" />
+          <span class="button-label">Tempelhof-Schöneberg</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="location" id="Treptow-Köpenick" />
+          <span class="button-label">Treptow-Köpenick</span>
+        </label>
+      </div>
+
+      <!-- Map Container -->
+      <section class="map-section">
+        <div class="custom-popup" id="map"></div>
+      </section>
+    </main>
+
+    <!-- Loading indicator -->
+    <div id="loading-indicator" class="loading-overlay" style="display: none">
+      <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">Lade Kartendaten...</p>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <!-- Leaflet JavaScript -->
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+
+    <!-- Leaflet MarkerCluster JavaScript -->
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+    <!-- Platform scripts -->
+    <script src="../shared/js/env-loader.js"></script>
+    <script src="../shared/js/map-utils.js"></script>
+    <script src="../shared/js/map-base.js"></script>
+    <script src="js/sheets-data-processor_ampel.js"></script>
+
+    <!-- Berlin media configuration -->
+    <script src="config/berlin-ampel-config.js"></script>
+
+    <!-- Application initialization -->
+    <script>
+      (function () {
+        "use strict";
+
+        // ============================================================================
+        // CONSTANTS
+        // ============================================================================
+
+        const DEFAULT_MARKER_COLOR = "#666666";
+
+        const DISTRICT_STYLES = {
+          default: {
+            color: "#13538a",
+            opacity: 1,
+            fillOpacity: 0,
+            weight: 2,
+            dashArray: "10",
+          },
+          hover: {
+            weight: 3,
+            color: "#13538a",
+            dashArray: "",
+            fillOpacity: 0.15,
+          },
+          selected: {
+            weight: 4,
+            color: "#13538a",
+            dashArray: "",
+            fillOpacity: 0.3,
+          },
+        };
+
+        const MARKER_STYLES = {
+          color: "black",
+          radius: 6,
+          weight: 1,
+          opacity: 1,
+          fillOpacity: 1,
+        };
+
+        const CLUSTER_OPTIONS = {
+          maxClusterRadius: 30,
+          disableClusteringAtZoom: 0,//oder 14
+          spiderfyOnMaxZoom: true,
+          showCoverageOnHover: false,
+          zoomToBoundsOnClick: true,
+          chunkedLoading: true,
+          iconCreateFunction: function (cluster) {
+            const count = cluster.getChildCount();
+            return L.divIcon({
+              html: "<span>" + count + "</span>",
+              className: "marker-cluster",
+              iconSize: L.point(40, 40),
+              iconAnchor: L.point(20, 20),
+            });
+          },
+        };
+
+        // Advertising layer configurations
+        const ADVERTISING_LAYERS = {
+          Ampelschaltkasten: { color: "#008551", visible: true, markers: [] }
+        };
+
+        // ============================================================================
+        // STATE MANAGEMENT
+        // ============================================================================
+
+        const state = {
+          map: null,
+          mapWrapper: null,
+          districtBoundariesLayer: null,
+          markerCluster: null,
+          selectedDistrictName: null,
+          districtSelectionZoom: null,
+          districtGeoJsonFeatures: [],
+          districtInfoControl: null,
+        };
+
+        // ============================================================================
+        // MAP INITIALIZATION
+        // ============================================================================
+
+        async function initializeMap() {
+          try {
+            showLoading("Initialisiere Karte...");
+
+            const mapSetup = MapBase.initializeBasicMap(BerlinMediaConfig.map, {
+              enableColorFilter: true,
+              enableCustomScrollZoom: true,
+              enableResponsive: true,
+              enableExternalEvents: true,
+              customPanes: { districtPane: 201, markerPane: 600 },
+              tileConfig: null,
+            });
+
+            state.mapWrapper = {
+              map: mapSetup.map,
+              loading: mapSetup.loading,
+              cleanup: mapSetup.cleanup,
+              getMap() {
+                return this.map;
+              },
+            };
+
+            state.map = mapSetup.map;
+
+            if (BerlinMediaConfig.dataSources.districts) {
+              showLoading("Lade Bezirksgrenzen...");
+              await loadDistrictBoundaries();
+            }
+
+            initializeMarkerCluster();
+
+            if (BerlinMediaConfig.dataSources.mediaLocations) {
+              showLoading("Lade Medienstandorte...");
+              await loadMediaLocations();
+            }
+
+            setupDistrictSelection();
+            setupDistrictInfoControl();
+            setupInfoControl();
+
+            hideLoading();
+            console.log("Berlin media locations map initialized successfully");
+          } catch (error) {
+            console.error("Failed to initialize Berlin media map:", error);
+            hideLoading();
+            MapUtils.handleError(error, "beim Initialisieren der Karte");
+          }
+        }
+
+        function initializeMarkerCluster() {
+          state.markerCluster = L.markerClusterGroup(CLUSTER_OPTIONS);
+          state.markerCluster.addTo(state.map);
+        }
+
+        // ============================================================================
+        // DATA LOADING
+        // ============================================================================
+
+        async function loadDistrictBoundaries() {
+          try {
+            const response = await fetch(
+              BerlinMediaConfig.dataSources.districts,
+            );
+            const geoJsonData = await response.json();
+            state.districtGeoJsonFeatures = geoJsonData.features || [];
+
+            state.districtBoundariesLayer = L.geoJSON(geoJsonData, {
+              style: () => DISTRICT_STYLES.default,
+              pane: "districtPane",
+              onEachFeature: function (feature, layer) {
+                layer.on({
+                  mouseover: handleDistrictMouseover,
+                  mouseout: handleDistrictMouseout,
+                  click: handleDistrictClick,
+                });
+              },
+            });
+
+            state.districtBoundariesLayer.addTo(state.map);
+            console.log("District boundaries loaded successfully");
+          } catch (error) {
+            console.error("Error loading district boundaries:", error);
+            MapUtils.handleError(error, "beim Laden der Bezirksgrenzen");
+          }
+        }
+
+        async function loadMediaLocations() {
+          try {
+            const mediaConfig = BerlinMediaConfig.dataSources.mediaLocations;
+            const advertisingData = await fetchAdvertisingData(mediaConfig);
+
+            if (!advertisingData) {
+              throw new Error("No advertising data available");
+            }
+
+            processAdvertisingData(advertisingData);
+
+            setupLayerControl();
+            recalculateDistrictStatistics();
+            console.log("Media locations loaded successfully");
+          } catch (error) {
+            console.error("Error loading media locations:", error);
+            MapUtils.handleError(error, "beim Laden der Medienstandorte");
+          }
+        }
+
+        async function fetchAdvertisingData(mediaConfig) {
+          if (mediaConfig.googleSheets) {
+            showLoading("Lade aktuelle Daten...");
+            try {
+              const data = await SheetsDataProcessor.fetchAndProcess(
+                mediaConfig.googleSheets.sheetId,
+                mediaConfig.googleSheets.range,
+              );
+              console.log("Successfully loaded data from Google Sheets");
+              return data;
+            } catch (sheetsError) {
+              console.warn(
+                "Google Sheets failed, trying fallback:",
+                sheetsError.message,
+              );
+
+              if (mediaConfig.fallback) {
+                showLoading("Lade Backup-Daten...");
+                const response = await fetch(mediaConfig.fallback);
+                if (response.ok) {
+                  const data = await response.json();
+                  console.log("Successfully loaded fallback data");
+                  return data;
+                } else {
+                  throw new Error(`Fallback data failed: ${response.status}`);
+                }
+              } else {
+                throw sheetsError;
+              }
+            }
+          } else {
+            const response = await fetch(mediaConfig.fallback || mediaConfig);
+            return await response.json();
+          }
+        }
+
+        function processAdvertisingData(advertisingData) {
+          for (const layerName in advertisingData) {
+            if (!(layerName in ADVERTISING_LAYERS)) {
+              console.warn(`Unknown advertising layer: ${layerName}`);
+              continue;
+            }
+
+            const markers = createMarkersForLayer(
+              advertisingData[layerName],
+              layerName,
+            );
+
+            ADVERTISING_LAYERS[layerName].markers = markers;
+
+            if (ADVERTISING_LAYERS[layerName].visible) {
+              state.markerCluster.addLayers(markers);
+            }
+          }
+        }
+
+        function createMarkersForLayer(geoJsonData, categoryName) {
+          const markers = [];
+          const layerColor =
+            ADVERTISING_LAYERS[categoryName]?.color || DEFAULT_MARKER_COLOR;
+
+          geoJsonData.features.forEach((feature) => {
+            if (feature.geometry?.type !== "Point") return;
+
+            const latlng = [
+              feature.geometry.coordinates[1],
+              feature.geometry.coordinates[0],
+            ];
+
+            const marker = L.circleMarker(latlng, {
+              ...MARKER_STYLES,
+              interactive: true,
+              fillColor: layerColor,
+              pane: "markerPane",
+            });
+
+            marker.advertisingType = categoryName;
+
+            if (feature.properties?.popupContent) {
+              marker.bindPopup(feature.properties.popupContent, {
+                maxWidth: "auto",
+              });
+            }
+
+            markers.push(marker);
+          });
+
+          return markers;
+        }
+
+        // ============================================================================
+        // DISTRICT SELECTION
+        // ============================================================================
+
+        function setupDistrictSelection() {
+          const districtSelector = document.getElementById("district-selector");
+          if (!districtSelector) return;
+
+          const radioButtons = districtSelector.querySelectorAll(
+            'input[type="radio"]',
+          );
+          radioButtons.forEach((radio) => {
+            radio.addEventListener("change", function () {
+              if (this.checked) {
+                selectDistrictByName(this.id);
+              }
+            });
+          });
+        }
+
+        function selectDistrictByName(districtName) {
+          if (state.selectedDistrictName === districtName) {
+            deselectDistrict();
+            return;
+          }
+
+          state.selectedDistrictName = districtName;
+
+          const radioButton = document.getElementById(districtName);
+          if (radioButton) {
+            radioButton.checked = true;
+          }
+
+          if (state.districtBoundariesLayer) {
+            state.districtBoundariesLayer.eachLayer((layer) => {
+              const layerDistrictName = layer.feature.properties.name;
+              if (layerDistrictName === districtName) {
+                layer.setStyle(DISTRICT_STYLES.selected);
+                layer.bringToBack();
+                state.map.once("moveend", () => {
+                  state.districtSelectionZoom = state.map.getZoom();
+                });
+                state.map.fitBounds(layer.getBounds());
+                updateDistrictInfo(layer.feature.properties);
+              } else {
+                resetDistrictStyle(layer);
+              }
+            });
+          }
+        }
+
+        function deselectDistrict() {
+          state.selectedDistrictName = null;
+          state.districtSelectionZoom = null;
+
+          const radioButtons = document.querySelectorAll(
+            'input[name="location"]',
+          );
+          radioButtons.forEach((radio) => (radio.checked = false));
+
+          if (state.districtBoundariesLayer) {
+            state.districtBoundariesLayer.eachLayer((layer) => {
+              resetDistrictStyle(layer);
+            });
+          }
+
+          updateDistrictInfo(null);
+          state.map.setView(
+            BerlinMediaConfig.map.center,
+            BerlinMediaConfig.map.zoom,
+          );
+        }
+
+        function isDistrictMapInteractionEnabled() {
+          if (!state.selectedDistrictName) return true;
+          if (state.districtSelectionZoom == null) return true;
+          return state.map.getZoom() <= state.districtSelectionZoom;
+        }
+
+        function handleDistrictMouseover(event) {
+          if (!isDistrictMapInteractionEnabled()) return;
+
+          const layer = event.target;
+          const districtName = layer.feature.properties.name;
+
+          if (state.selectedDistrictName === districtName) return;
+
+          const hoverStyle = {
+            ...DISTRICT_STYLES.hover,
+            fillOpacity: state.selectedDistrictName ? 0.1 : 0.15,
+          };
+          layer.setStyle(hoverStyle);
+          layer.bringToBack();
+
+          if (!state.selectedDistrictName) {
+            updateDistrictInfo(layer.feature.properties);
+          }
+        }
+
+        function handleDistrictMouseout(event) {
+          if (!isDistrictMapInteractionEnabled()) return;
+
+          const layer = event.target;
+          const districtName = layer.feature.properties.name;
+
+          if (state.selectedDistrictName === districtName) return;
+
+          resetDistrictStyle(layer);
+
+          if (!state.selectedDistrictName) {
+            updateDistrictInfo(null);
+          }
+        }
+
+        function handleDistrictClick(event) {
+          if (!isDistrictMapInteractionEnabled()) return;
+
+          const layer = event.target;
+          const districtName = layer.feature.properties.name;
+
+          // Map clicks select/switch districts only — never toggle deselect.
+          // Avoids zoom-out when missing a small media marker click.
+          if (state.selectedDistrictName === districtName) return;
+
+          selectDistrictByName(districtName);
+        }
+
+        function resetDistrictStyle(layer) {
+          layer.setStyle(DISTRICT_STYLES.default);
+        }
+
+        // ============================================================================
+        // DISTRICT INFO CONTROL
+        // ============================================================================
+
+        function setupDistrictInfoControl() {
+          state.districtInfoControl = L.control();
+
+          state.districtInfoControl.onAdd = function (map) {
+            this._div = L.DomUtil.create("div", "info");
+            this.update();
+            return this._div;
+          };
+
+          state.districtInfoControl.update = function (districtProperties) {
+            if (districtProperties) {
+              const count =
+                BerlinMediaConfig.getDistrictStatistic(
+                  districtProperties.name,
+                ) || 0;
+              this._div.innerHTML = `<b>${districtProperties.name}</b><br />Anzahl der Werbeträger: ${count}`;
+            } else {
+              this._div.innerHTML =
+                "Wähle einen Bezirk aus der Liste oder klicke auf der Karte";
+            }
+          };
+
+          state.districtInfoControl.setPosition("bottomleft");
+          state.districtInfoControl.addTo(state.map);
+        }
+
+        function updateDistrictInfo(districtProperties) {
+          if (state.districtInfoControl) {
+            state.districtInfoControl.update(districtProperties);
+          }
+        }
+
+        // ============================================================================
+        // LAYER CONTROL
+        // ============================================================================
+
+        function setupLayerControl() {
+          if (
+            ADVERTISING_LAYERS ||
+            Object.keys(ADVERTISING_LAYERS).length === 0
+          ) {
+            console.warn("No advertising layers available for control setup");
+            return;
+          }
+
+          const layerControl = L.control({ position: "topright" });
+
+          layerControl.onAdd = function (map) {
+            const container = L.DomUtil.create(
+              "div",
+              "leaflet-bar custom-control",
+            );
+            const toggleButton = L.DomUtil.create(
+              "button",
+              "toggle-button1",
+              container,
+            );
+            const checkboxContainer = L.DomUtil.create(
+              "div",
+              "checkbox-container",
+              container,
+            );
+
+            checkboxContainer.style.display = "block";
+            toggleButton.innerHTML = "▲";
+
+            Object.keys(ADVERTISING_LAYERS).forEach((layerName) => {
+              const layerConfig = ADVERTISING_LAYERS[layerName];
+
+              const label = L.DomUtil.create(
+                "label",
+                "form-control",
+                checkboxContainer,
+              );
+              const checkbox = L.DomUtil.create("input", "checkbox", label);
+
+              checkbox.type = "checkbox";
+              checkbox.dataset.layerName = layerName;
+              checkbox.style.color = layerConfig.color;
+              checkbox.checked = layerConfig.visible;
+              checkbox.defaultChecked = layerConfig.visible;
+
+              if (layerConfig.visible) {
+                checkbox.setAttribute("checked", "checked");
+                setTimeout(() => (checkbox.checked = true), 0);
+              }
+
+              const labelText = document.createTextNode("  " + layerName);
+              label.appendChild(labelText);
+              label.style.padding = "10px";
+            });
+
+            L.DomEvent.on(container, "change", function (event) {
+              if (event.target.type === "checkbox") {
+                const checkbox = event.target;
+                const layerName = checkbox.dataset.layerName;
+                const layerConfig = ADVERTISING_LAYERS[layerName];
+
+                if (layerConfig) {
+                  layerConfig.visible = checkbox.checked;
+
+                  if (checkbox.checked) {
+                    if (layerConfig.markers?.length > 0) {
+                      state.markerCluster.addLayers(layerConfig.markers);
+                    }
+                  } else {
+                    if (layerConfig.markers?.length > 0) {
+                      state.markerCluster.removeLayers(layerConfig.markers);
+                    }
+                  }
+                } else {
+                  console.error("Layer configuration not found:", layerName);
+                }
+              }
+            });
+
+            L.DomEvent.on(toggleButton, "click", function () {
+              const isHidden = checkboxContainer.style.display === "none";
+              checkboxContainer.style.display = isHidden ? "block" : "none";
+              toggleButton.innerHTML = isHidden ? "▲" : "▼";
+            });
+
+            L.DomEvent.disableClickPropagation(container);
+            L.DomEvent.disableScrollPropagation(container);
+
+            return container;
+          };
+
+          layerControl.addTo(state.map);
+        }
+
+        // ============================================================================
+        // INFO BUTTON CONTROL
+        // ============================================================================
+
+        function setupInfoControl() {
+          const INFO_TEXT =
+            "Interaktive Karte der Werbeträger in Berlin. " +
+            "Wähle einen Bezirk aus der Liste oder klicke auf der Karte.";
+
+          const infoControl = L.control({ position: "topleft" });
+
+          infoControl.onAdd = function () {
+            const container = L.DomUtil.create("div", "info-container");
+            const button = L.DomUtil.create("button", "info-button", container);
+
+            button.innerHTML = String.fromCharCode(8505);
+            button.setAttribute("title", "Informationen");
+            button.setAttribute("aria-label", "Informationen anzeigen");
+
+            button.addEventListener("click", (e) => {
+              e.stopPropagation();
+              L.popup()
+                .setLatLng(state.map.getCenter())
+                .setContent(INFO_TEXT)
+                .openOn(state.map);
+            });
+
+            L.DomEvent.disableClickPropagation(container);
+            L.DomEvent.disableScrollPropagation(container);
+
+            return container;
+          };
+
+          infoControl.addTo(state.map);
+        }
+
+        // ============================================================================
+        // DISTRICT STATISTICS
+        // ============================================================================
+
+        function recalculateDistrictStatistics() {
+          if (
+            !state.districtGeoJsonFeatures ||
+            state.districtGeoJsonFeatures.length === 0
+          ) {
+            console.warn(
+              "District statistics cannot be recalculated without boundary data",
+            );
+            return;
+          }
+
+          const newStatistics = {};
+
+          Object.values(ADVERTISING_LAYERS).forEach((layerConfig) => {
+            if (!layerConfig.markers) return;
+            layerConfig.markers.forEach((marker) => {
+              const latlng = marker.getLatLng();
+              const districtName = findDistrictForLatLng(latlng);
+              if (districtName) {
+                newStatistics[districtName] =
+                  (newStatistics[districtName] || 0) + 1;
+              }
+            });
+          });
+
+          BerlinMediaConfig.districtStatistics = newStatistics;
+
+          if (state.selectedDistrictName) {
+            const selectedFeature = state.districtGeoJsonFeatures.find(
+              (feature) =>
+                feature.properties?.name === state.selectedDistrictName,
+            );
+            updateDistrictInfo(
+              selectedFeature ? selectedFeature.properties : null,
+            );
+          }
+        }
+
+        function findDistrictForLatLng(latlng) {
+          if (!latlng || !state.districtGeoJsonFeatures) return null;
+
+          for (const feature of state.districtGeoJsonFeatures) {
+            if (!feature?.geometry) continue;
+
+            const geometry = feature.geometry;
+            const name = feature.properties?.name;
+
+            if (
+              geometry.type === "Polygon" &&
+              isPointInPolygon(latlng, geometry.coordinates)
+            ) {
+              return name;
+            }
+
+            if (geometry.type === "MultiPolygon") {
+              for (const polygon of geometry.coordinates) {
+                if (isPointInPolygon(latlng, polygon)) {
+                  return name;
+                }
+              }
+            }
+          }
+
+          return null;
+        }
+
+        function isPointInPolygon(latlng, polygonCoords) {
+          if (!polygonCoords || polygonCoords.length === 0) return false;
+
+          const point = [latlng.lng, latlng.lat];
+          const outerRing = polygonCoords[0];
+          if (!outerRing || outerRing.length === 0) return false;
+
+          let inside = false;
+          for (
+            let i = 0, j = outerRing.length - 1;
+            i < outerRing.length;
+            j = i++
+          ) {
+            const xi = outerRing[i][0];
+            const yi = outerRing[i][1];
+            const xj = outerRing[j][0];
+            const yj = outerRing[j][1];
+
+            const intersect =
+              yi > point[1] !== yj > point[1] &&
+              point[0] <
+                ((xj - xi) * (point[1] - yi)) / (yj - yi + 0.0000001) + xi;
+            if (intersect) inside = !inside;
+          }
+
+          return inside;
+        }
+
+        // ============================================================================
+        // UTILITIES
+        // ============================================================================
+
+        function showLoading(message = "Lade Daten...") {
+          if (state.mapWrapper?.loading) {
+            state.mapWrapper.loading.show(message);
+          } else {
+            const loadingIndicator =
+              document.getElementById("loading-indicator");
+            if (loadingIndicator) {
+              const loadingText =
+                loadingIndicator.querySelector(".loading-text");
+              if (loadingText) loadingText.textContent = message;
+              loadingIndicator.style.display = "flex";
+            }
+          }
+        }
+
+        function hideLoading() {
+          if (state.mapWrapper?.loading) {
+            state.mapWrapper.loading.hide();
+          } else {
+            const loadingIndicator =
+              document.getElementById("loading-indicator");
+            if (loadingIndicator) {
+              loadingIndicator.style.display = "none";
+            }
+          }
+        }
+
+        function changeMapView(coordinates, zoom) {
+          if (state.map) {
+            state.map.setView(coordinates, zoom);
+          }
+        }
+
+        // ============================================================================
+        // INITIALIZATION & EXPORTS
+        // ============================================================================
+
+        document.addEventListener("DOMContentLoaded", function () {
+          initializeMap();
+        });
+
+        // Export public API
+        window.berlinMediaMap = {
+          getMap() {
+            return state.mapWrapper;
+          },
+        };
+        window.selectDistrict = selectDistrictByName;
+        window.changeMapView = changeMapView;
+      })();
+    </script>
+  </body>
+</html>
