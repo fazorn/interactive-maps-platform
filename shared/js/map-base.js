@@ -164,7 +164,10 @@ const MapBase = {
     };
 
     const config = tileConfig || defaultConfig;
-    const tileLayer = L.tileLayer(config.url, config.options);
+    const tileUrl = config.url.includes('.basemaps.cartocdn.com')
+      ? EnvLoader.buildCartoTileUrl(config.url)
+      : config.url;
+    const tileLayer = L.tileLayer(tileUrl, config.options);
     tileLayer.addTo(map);
     
     return tileLayer;

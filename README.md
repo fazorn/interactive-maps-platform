@@ -86,6 +86,20 @@ Google Sheets API key. **Never commit the key.**
 Without a key, both maps still work — they just skip the live data and use the
 GeoJSON files / disable statistics.
 
+### CARTO API key
+
+All CARTO basemaps use the `CARTO_API_KEY` environment variable, added to tile
+requests as the `api` query parameter.
+
+- **Production:** set `CARTO_API_KEY` in the Netlify UI
+  (Site settings → Environment variables). `netlify/functions/config.js` exposes
+  it to the browser at runtime.
+- **Local development:** add it to the `.env` file alongside the Sheets key:
+
+  ```
+  CARTO_API_KEY=your_key_here
+  ```
+
 ## Adding a city
 
 The city map is the only map designed to be extended. To add, e.g., Hamburg:

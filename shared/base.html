@@ -50,6 +50,7 @@
       integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
       crossorigin=""
     ></script>
+    <script src="js/env-loader.js"></script>
 
     <!-- Simple Map Initialization -->
     <script>
@@ -61,9 +62,10 @@
         const DEFAULT_ZOOM = 11;
 
         // Initialize map
-        function initializeMap() {
+        async function initializeMap() {
           try {
             showLoading();
+            await EnvLoader.load();
 
             // Create map
             const map = L.map("map", {
@@ -75,7 +77,9 @@
 
             // Add tile layer (CartoDB Positron)
             L.tileLayer(
-              "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+              EnvLoader.buildCartoTileUrl(
+                "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+              ),
               {
                 attribution:
                   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',

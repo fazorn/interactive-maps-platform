@@ -97,9 +97,21 @@ const EnvLoader = {
     }
 
     return `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
+  },
+
+  /**
+   * Add the CARTO API key to a tile URL.
+   */
+  buildCartoTileUrl(url) {
+    const separator = url.includes('?') ? '&' : '?';
+    const apiKey = this.get('CARTO_API_KEY', '');
+    return `${url}${separator}api=${encodeURIComponent(apiKey)}`;
   }
+
+  /**
+   * 
+   */
 };
 
 // Export
 window.EnvLoader = EnvLoader;
-
