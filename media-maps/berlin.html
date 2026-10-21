@@ -225,6 +225,7 @@
         async function initializeMap() {
           try {
             showLoading("Initialisiere Karte...");
+            await EnvLoader.load();
 
             const mapSetup = MapBase.initializeBasicMap(BerlinMediaConfig.map, {
               enableColorFilter: true,
@@ -615,9 +616,9 @@
               "checkbox-container",
               container,
             );
-
-            checkboxContainer.style.display = "block";
-            toggleButton.innerHTML = "▲";
+            const isMobile = window.matchMedia("(max-width: 768px)").matches;
+            checkboxContainer.style.display = isMobile ? "none" : "block";
+            toggleButton.innerHTML = isMobile ? "▼" : "▲";
 
             Object.keys(ADVERTISING_LAYERS).forEach((layerName) => {
               const layerConfig = ADVERTISING_LAYERS[layerName];

@@ -209,6 +209,7 @@
         async function initializeMap() {
           try {
             showLoading("Initialisiere Karte...");
+            await EnvLoader.load();
 
             const mapSetup = MapBase.initializeBasicMap(BerlinMediaConfig.map, {
               enableColorFilter: true,

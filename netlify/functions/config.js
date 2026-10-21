@@ -22,6 +22,9 @@ exports.handler = async (event, context) => {
     if (process.env.GOOGLE_SHEETS_API_KEY) {
       config.GOOGLE_SHEETS_API_KEY = process.env.GOOGLE_SHEETS_API_KEY;
     }
+    if (process.env.CARTO_API_KEY) {
+      config.CARTO_API_KEY = process.env.CARTO_API_KEY;
+    }
 
     return {
       statusCode: 200,
