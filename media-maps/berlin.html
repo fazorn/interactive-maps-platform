@@ -616,9 +616,9 @@
               "checkbox-container",
               container,
             );
-
-            checkboxContainer.style.display = "none";
-            toggleButton.innerHTML = "▼";
+            const isMobile = window.matchMedia("(max-width: 768px)").matches;
+            checkboxContainer.style.display = isMobile ? "none" : "block";
+            toggleButton.innerHTML = isMobile ? "▼" : "▲";
 
             Object.keys(ADVERTISING_LAYERS).forEach((layerName) => {
               const layerConfig = ADVERTISING_LAYERS[layerName];
