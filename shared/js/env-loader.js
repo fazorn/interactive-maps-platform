@@ -105,7 +105,7 @@ const EnvLoader = {
   buildCartoTileUrl(url) {
     const separator = url.includes('?') ? '&' : '?';
     const apiKey = this.get('CARTO_API_KEY', '');
-    return `${url}${separator}api=${encodeURIComponent(apiKey)}`;
+    return `${url}${separator}key=${encodeURIComponent(apiKey)}`;
   }
 
   /**
